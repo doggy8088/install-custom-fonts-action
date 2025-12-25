@@ -1,0 +1,108 @@
+name: 'Install Custom Fonts'
+description: 'Install custom font files (OTF/TTF/WOFF) on GitHub Actions Linux runners'
+author: doggy8088
+branding:
+  icon: type
+  color: orange
+inputs:
+  fonts-dir:
+    description: 'Path to fonts directory (relative to workspace root)'
+    required: false
+    default: ''
+  font-files:
+    description: 'List of font file paths (space or newline separated, supports OTF/TTF/WOFF)'
+    required: false
+    default: ''
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        set -e
+        
+        FONTS_DIR="${{ inputs.fonts-dir }}"
+        FONT_FILES="${{ inputs.font-files }}"
+        
+        if [ -z "$FONTS_DIR" ] && [ -z "$FONT_FILES" ]; then
+          echo "::error::Please specify at least one of fonts-dir or font-files"
+          exit 1
+        fi
+        
+        # Create fonts directory
+        echo "::group::Create system fonts directory"
+        SYSTEM_FONT_DIR="$HOME/.local/share/fonts"
+        mkdir -p "$SYSTEM_FONT_DIR"
+        echo "Fonts will be installed to: $SYSTEM_FONT_DIR"
+        echo "::endgroup::"
+        
+        # Process fonts directory
+        if [ -n "$FONTS_DIR" ]; then
+          echo "::group::Install fonts from directory: $FONTS_DIR"
+          
+          if [ ! -d "$FONTS_DIR" ]; then
+            echo "::error::Fonts directory does not exist: $FONTS_DIR"
+            exit 1
+          fi
+          
+          # Copy OTF, TTF, WOFF files
+          FONT_COUNT=0
+          for ext in otf ttf woff OTF TTF WOFF; do
+            while IFS= read -r -d '' font; do
+              cp "$font" "$SYSTEM_FONT_DIR/"
+              echo "Installed: $(basename "$font")"
+              FONT_COUNT=$((FONT_COUNT + 1))
+            done < <(find "$FONTS_DIR" -type f -name "*.$ext" -print0 2>/dev/null || true)
+          done
+          
+          if [ $FONT_COUNT -eq 0 ]; then
+            echo "::warning::No font files found in $FONTS_DIR (OTF/TTF/WOFF)"
+          else
+            echo "Installed $FONT_COUNT font file(s) from directory"
+          fi
+          
+          echo "::endgroup::"
+        fi
+        
+        # Process individual font files
+        if [ -n "$FONT_FILES" ]; then
+          echo "::group::Install specified font files"
+          
+          FONT_COUNT=0
+          # Split input by space or newline
+          for font_file in $FONT_FILES; do
+            if [ ! -f "$font_file" ]; then
+              echo "::warning::Font file does not exist: $font_file"
+              continue
+            fi
+            
+            # Check file extension
+            case "${font_file,,}" in
+              *.otf|*.ttf|*.woff)
+                cp "$font_file" "$SYSTEM_FONT_DIR/"
+                echo "Installed: $(basename "$font_file")"
+                FONT_COUNT=$((FONT_COUNT + 1))
+                ;;
+              *)
+                echo "::warning::Unsupported font format: $font_file (only OTF/TTF/WOFF supported)"
+                ;;
+            esac
+          done
+          
+          if [ $FONT_COUNT -eq 0 ]; then
+            echo "::warning::No font files were installed"
+          else
+            echo "Installed $FONT_COUNT font file(s)"
+          fi
+          
+          echo "::endgroup::"
+        fi
+        
+        # Update font cache
+        echo "::group::Update font cache"
+        fc-cache -fv "$SYSTEM_FONT_DIR"
+        echo "::endgroup::"
+        
+        # Display installed fonts
+        echo "::group::Verify installed fonts"
+        fc-list | grep "$SYSTEM_FONT_DIR" || echo "Fonts installed but may not yet appear in fc-list"
+        echo "::endgroup::"

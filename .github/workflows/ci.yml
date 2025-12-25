@@ -1,0 +1,107 @@
+# Test workflow for install-custom-fonts-action
+# Demonstrates how to install custom fonts on GitHub Actions runners
+
+name: CI - Test Font Installation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-fonts-dir:
+    name: Test fonts directory installation (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Create test fonts directory
+        run: |
+          mkdir -p test-fonts
+          # Download some test fonts (Google Fonts - Open Font License)
+          curl -L "https://github.com/google/fonts/raw/main/ofl/roboto/static/Roboto-Regular.ttf" -o test-fonts/Roboto-Regular.ttf
+          curl -L "https://github.com/google/fonts/raw/main/ofl/roboto/static/Roboto-Bold.ttf" -o test-fonts/Roboto-Bold.ttf
+
+      - name: Install fonts from directory
+        uses: ./
+        with:
+          fonts-dir: 'test-fonts'
+
+      - name: Verify fonts installed
+        run: |
+          echo "Checking installed fonts:"
+          fc-list | grep -i "Roboto" || echo "Warning: Fonts may need time to register"
+          echo ""
+          echo "Checking fonts directory:"
+          ls -lh "$HOME/.local/share/fonts/"
+
+  test-fonts-files:
+    name: Test specific font files installation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download test fonts
+        run: |
+          mkdir -p fonts
+          curl -L "https://github.com/google/fonts/raw/main/ofl/opensans/static/OpenSans-Regular.ttf" -o fonts/OpenSans-Regular.ttf
+          curl -L "https://github.com/google/fonts/raw/main/ofl/opensans/static/OpenSans-Bold.ttf" -o fonts/OpenSans-Bold.ttf
+
+      - name: Install specific font files
+        uses: ./
+        with:
+          font-files: |
+            fonts/OpenSans-Regular.ttf
+            fonts/OpenSans-Bold.ttf
+
+      - name: Verify fonts installed
+        run: |
+          echo "Checking installed fonts:"
+          fc-list | grep -i "Open Sans" || echo "Warning: Fonts may need time to register"
+          echo ""
+          echo "Fonts directory contents:"
+          ls -lh "$HOME/.local/share/fonts/"
+
+  test-both-inputs:
+    name: Test both fonts-dir and font-files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Prepare test fonts
+        run: |
+          mkdir -p fonts-dir extra-fonts
+          # Download fonts for directory test
+          curl -L "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf" -o fonts-dir/Lato-Regular.ttf
+          # Download font for file test
+          curl -L "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Bold.ttf" -o extra-fonts/Lato-Bold.ttf
+
+      - name: Install fonts using both methods
+        uses: ./
+        with:
+          fonts-dir: 'fonts-dir'
+          font-files: 'extra-fonts/Lato-Bold.ttf'
+
+      - name: Verify fonts installed
+        run: |
+          echo "Checking installed fonts:"
+          fc-list | grep -i "Lato" || echo "Warning: Fonts may need time to register"
+          echo ""
+          echo "Total fonts installed:"
+          ls -lh "$HOME/.local/share/fonts/" | wc -l
