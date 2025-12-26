@@ -6,7 +6,6 @@ Install custom font files (OTF/TTF/WOFF) on GitHub Actions Linux runners to prev
 
 - Linux runners only (e.g., Ubuntu / Debian-based)
 - GitHub-hosted Ubuntu runners:
-  - `ubuntu-20.04`
   - `ubuntu-22.04`
   - `ubuntu-24.04`
   - `ubuntu-latest`
