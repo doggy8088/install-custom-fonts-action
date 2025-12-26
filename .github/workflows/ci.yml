@@ -31,8 +31,8 @@ jobs:
         run: |
           mkdir -p test-fonts
           # Download some test fonts (Google Fonts - Open Font License)
-          curl -L "https://github.com/google/fonts/raw/main/ofl/roboto/static/Roboto-Regular.ttf" -o test-fonts/Roboto-Regular.ttf
-          curl -L "https://github.com/google/fonts/raw/main/ofl/roboto/static/Roboto-Bold.ttf" -o test-fonts/Roboto-Bold.ttf
+          curl -L "https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Regular.ttf" -o test-fonts/Roboto-Regular.ttf
+          curl -L "https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Bold.ttf" -o test-fonts/Roboto-Bold.ttf
 
       - name: Install fonts from directory
         uses: ./
@@ -58,8 +58,8 @@ jobs:
       - name: Download test fonts
         run: |
           mkdir -p fonts
-          curl -L "https://github.com/google/fonts/raw/main/ofl/opensans/static/OpenSans-Regular.ttf" -o fonts/OpenSans-Regular.ttf
-          curl -L "https://github.com/google/fonts/raw/main/ofl/opensans/static/OpenSans-Bold.ttf" -o fonts/OpenSans-Bold.ttf
+          curl -L "https://raw.githubusercontent.com/googlefonts/opensans/main/fonts/ttf/OpenSans-Regular.ttf" -o fonts/OpenSans-Regular.ttf
+          curl -L "https://raw.githubusercontent.com/googlefonts/opensans/main/fonts/ttf/OpenSans-Bold.ttf" -o fonts/OpenSans-Bold.ttf
 
       - name: Install specific font files
         uses: ./
@@ -88,9 +88,9 @@ jobs:
         run: |
           mkdir -p fonts-dir extra-fonts
           # Download fonts for directory test
-          curl -L "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf" -o fonts-dir/Lato-Regular.ttf
+          curl -L "https://raw.githubusercontent.com/google/fonts/main/ofl/lato/Lato-Regular.ttf" -o fonts-dir/Lato-Regular.ttf
           # Download font for file test
-          curl -L "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Bold.ttf" -o extra-fonts/Lato-Bold.ttf
+          curl -L "https://raw.githubusercontent.com/google/fonts/main/ofl/lato/Lato-Bold.ttf" -o extra-fonts/Lato-Bold.ttf
 
       - name: Install fonts using both methods
         uses: ./
